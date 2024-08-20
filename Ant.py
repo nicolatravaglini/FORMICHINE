@@ -119,6 +119,6 @@ class Ant:
 			self.trail.update(dt)
 
 	def draw(self, screen):
-		print(tuple(np.array(ANT_COLOR)*(self.hp/self.max_hp)))
+		# print(tuple(np.array(ANT_COLOR)*(self.hp/self.max_hp)))
 		pygame.draw.rect(screen, tuple(np.array(ANT_COLOR)*(self.hp/self.max_hp)), (self.x, self.y, ANT_SIZE, ANT_SIZE))
 		self.trail.draw(screen)
