@@ -22,9 +22,17 @@ class Anthill:
 			if ant.hp <= 0:
 				self.ants.remove(ant)
 
-	def update(self, dt, foodsets):
+	def __get_all_pheromones(self):
+		pheromones = []
 		for ant in self.ants:
-			ant.update(dt, foodsets)
+			for pheromone in ant.trail.trail:
+				pheromones.append(pheromone)
+		return pheromones
+
+	def update(self, dt, foodsets):
+		pheromones = self.__get_all_pheromones()
+		for ant in self.ants:
+			ant.update(dt, pheromones, foodsets)
 		self.__check_hps()
 
 	def draw(self, screen):

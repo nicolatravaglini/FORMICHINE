@@ -12,7 +12,7 @@ class Trail:
 		self.trail.append(Pheromone(x, y))
 
 	def reset(self):
-		self.trail = []
+		self.trail.clear()
 
 	def update(self, dt):
 		for p in self.trail:

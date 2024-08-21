@@ -33,9 +33,9 @@ class Ant:
 			self.phrt = PHEROMONE_RELEASE_TIMESPAN
 			self.trail.add_pheromone(self.x, self.y)
 
-	def __move(self, dt):
+	def __move(self, dt, pheromones):
 		# Change direction
-		self.__change_direction(dt)
+		self.__change_direction(pheromones)
 		# Move the ant
 		dir_x = math.cos(self.angle_dir * math.pi / 180) * ANT_SPEED
 		dir_y = math.sin(self.angle_dir * math.pi / 180) * ANT_SPEED
@@ -59,12 +59,25 @@ class Ant:
 			steering *= -1
 		return steering
 
-	def __change_direction(self, dt):
+	def __find_nearest_pheromone(self, pheromones):
+		nearest = pheromones[0]
+		for pheromone in pheromones:
+			dist1 = math.dist((self.x, self.y), (nearest.x, nearest.y))
+			dist2 = math.dist((self.x, self.y), (pheromone.x, pheromone.y))
+			if dist1 > dist2:
+				nearest = pheromone
+		return nearest
+
+	def __change_direction(self, pheromones):
 		steering = random.uniform(-STEERING_FACTOR, STEERING_FACTOR)
 		steering *= random.choice([1] + [0 for _ in range(STEERING_RATE-1)])
 		# Get influenced
+		# TODO: get influenced by pheromones
 		if self.has_food:
 			steering = self.__get_influenced(self.anthill.x, self.anthill.y, steering)
+		elif len(pheromones) > 0:
+			nearest_ph = self.__find_nearest_pheromone(pheromones)
+			steering = self.__get_influenced(nearest_ph.x, nearest_ph.y, steering)
 		# Steering
 		self.angle_acc += steering
 		if self.angle_acc > STEERING_THRESHOLD:
@@ -101,6 +114,12 @@ class Ant:
 			self.anthill.spawn_ant()
 			self.__detach()
 
+	def __check_collision_with_pheromone(self, pheromones):
+		for pheromone in pheromones:
+			dist = math.dist((self.x, self.y), (pheromone.x, pheromone.y))
+			if dist <= 1:
+				pheromone.effect = 0
+
 	def __eat(self):
 		self.hp = self.max_hp
 		self.trail.reset()
@@ -109,14 +128,16 @@ class Ant:
 	def __detach(self):
 		self.has_food = False
 
-	def update(self, dt, foodsets):
-		self.__move(dt)
+	def update(self, dt, pheromones, foodsets):
+		self.__move(dt, pheromones)
 		self.__loose_hp(dt)
 		self.__check_collision_with_food(foodsets)
 		self.__check_collision_with_anthill()
 		if self.has_food:
 			self.__release_pheromone(dt)
-			self.trail.update(dt)
+		else:
+			self.__check_collision_with_pheromone(pheromones)
+		self.trail.update(dt)
 
 	def draw(self, screen):
 		# print(tuple(np.array(ANT_COLOR)*(self.hp/self.max_hp)))
